@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { onChangeEvent } from './example-module';
+import { apply } from './define-apply-module';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function onChange(e: GoogleAppsScript.Events.SheetsOnChange) {
-  onChangeEvent(e);
+function applyDefine() {
+  apply();
 }
