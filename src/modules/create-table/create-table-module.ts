@@ -4,17 +4,19 @@ import {
   createReferenceSwitchFormula,
   getCellName,
   getColIndex,
-  getRowIndex,
+  getHeaderRowIndex,
   moveColumnData,
 } from './sheet-module';
 import {
   CELL_NAME,
   DATA_SHEET_COL_OFFSET,
+  DATA_SHEET_DISPLAY_NAME_ROW_OFFSET,
+  DATA_SHEET_KEY_NAME_ROW_OFFSET,
   DATA_SHEET_NAME,
+  DATA_SHEET_START_ROW_OFFSET,
   DEFINE_KEY_NAME,
   DEFINE_SHEET_NAME,
   DISPLAY_NAME,
-  READ_ROW_MARKER,
   REFERENCE_SHEET_NAME,
 } from '../../constants/constant';
 
@@ -34,37 +36,33 @@ export function apply() {
   );
 
   const defineSheetValues = defineRange.getValues();
-  const headerRowIndex = getRowIndex(defineSheetValues, 1, READ_ROW_MARKER);
-
-  // headerが存在しない。
-  if (!headerRowIndex)
-    throw new Error('Defineシートのヘッダーに無効な編集がされました。');
+  const defineSheetHeaderRowIndex = getHeaderRowIndex(defineSheet);
 
   const idColIndex = getColIndex(
-    defineSheetValues[headerRowIndex],
+    defineSheetValues[defineSheetHeaderRowIndex],
     DEFINE_KEY_NAME
   );
   const displayNameColIndex = getColIndex(
-    defineSheetValues[headerRowIndex],
+    defineSheetValues[defineSheetHeaderRowIndex],
     DISPLAY_NAME
   );
   const referenceSheetColIndex = getColIndex(
-    defineSheetValues[headerRowIndex],
+    defineSheetValues[defineSheetHeaderRowIndex],
     REFERENCE_SHEET_NAME
   );
 
   // defineシートのHeader一行下からデータを「項目名」と「表示名」のデータを取得していき、
   // そのデータをdataシート側のHeaderに追加していく
   let referenceCount = 0;
-  const dataSheetHeaderRowIndex = getRowIndex(
-    dataSheet.getRange(1, 1, dataSheet.getLastRow(), 1).getValues(),
-    1,
-    READ_ROW_MARKER
-  );
+  const dataSheetHeaderRowIndex = getHeaderRowIndex(dataSheet);
   const dataSheetHeaderRowNumber = dataSheetHeaderRowIndex + 1;
 
-  for (let i = 1; i < defineSheetValues.length - headerRowIndex; i++) {
-    const defineSheetRowIndex = headerRowIndex + i;
+  for (
+    let i = 1;
+    i < defineSheetValues.length - defineSheetHeaderRowIndex;
+    i++
+  ) {
+    const defineSheetRowIndex = defineSheetHeaderRowIndex + i;
     const insertDataColNumber = referenceCount + i + DATA_SHEET_COL_OFFSET;
     const id = defineSheetValues[defineSheetRowIndex][idColIndex];
     const displayName =
@@ -106,19 +104,25 @@ export function apply() {
 // 定義シートのIdとDisplayNameを持つ列を追加する
 function insertColumn(
   dataSheet: GoogleAppsScript.Spreadsheet.Sheet,
-  id: string,
+  key: string,
   displayName: string,
   insertDataColNumber: number,
   dataSheetHeaderRowNumber: number
 ) {
-  // dataシートにIdを挿入
+  // dataシートに項目名を挿入
   dataSheet
-    .getRange(dataSheetHeaderRowNumber, insertDataColNumber)
-    .setValue(id);
+    .getRange(
+      dataSheetHeaderRowNumber + DATA_SHEET_KEY_NAME_ROW_OFFSET,
+      insertDataColNumber
+    )
+    .setValue(key);
 
   // dataシートに表示名を挿入
   dataSheet
-    .getRange(dataSheetHeaderRowNumber + 1, insertDataColNumber)
+    .getRange(
+      dataSheetHeaderRowNumber + DATA_SHEET_DISPLAY_NAME_ROW_OFFSET,
+      insertDataColNumber
+    )
     .setValue(displayName);
 }
 
@@ -126,7 +130,7 @@ function insertColumn(
 function insertReferenceColumn(
   dataSheet: GoogleAppsScript.Spreadsheet.Sheet,
   referenceSheet: GoogleAppsScript.Spreadsheet.Sheet,
-  id: string,
+  key: string,
   displayName: string,
   insertDataColNumber: number,
   dataSheetHeaderRowNumber: number
@@ -136,24 +140,24 @@ function insertReferenceColumn(
 
   moveColumnData(dataSheet, insertDataColNumber, insertDataColNumber + 1);
 
-  // dataシートにIdを挿入
-  dataSheet
-    .getRange(dataSheetHeaderRowNumber, insertDataColNumber)
-    .setValue(`${id}_ref`);
-  // dataシートに表示名を挿入
-  dataSheet
-    .getRange(dataSheetHeaderRowNumber + 1, insertDataColNumber)
-    .setValue(`${displayName}(ref)`);
+  insertColumn(
+    dataSheet,
+    `${key}_ref`,
+    `${displayName}(ref)`,
+    insertDataColNumber,
+    dataSheetHeaderRowNumber
+  );
+
   dataSheet
     .getRange(
-      dataSheetHeaderRowNumber + 2,
+      dataSheetHeaderRowNumber + DATA_SHEET_START_ROW_OFFSET,
       insertDataColNumber,
       dataSheet.getLastRow()
     )
     .setValues(
       dataSheet
         .getRange(
-          dataSheetHeaderRowNumber + 2,
+          dataSheetHeaderRowNumber + DATA_SHEET_START_ROW_OFFSET,
           insertDataColNumber,
           dataSheet.getLastRow()
         )
@@ -162,13 +166,17 @@ function insertReferenceColumn(
     );
 
   // プルダウンの作成
-  createPullDown(dataSheet, dataSheetHeaderRowNumber + 2, insertDataColNumber, [
-    ...referenceMap.values(),
-  ]);
+  createPullDown(
+    dataSheet,
+    dataSheetHeaderRowNumber + DATA_SHEET_START_ROW_OFFSET,
+    insertDataColNumber,
+    [...referenceMap.values()]
+  );
 
+  // 参照シートのValueをKeyに変換する関数を作成
   const formula = createReferenceSwitchFormula(referenceMap);
-
-  const dataSheetDataStartRowNumber = dataSheetHeaderRowNumber + 2;
+  const dataSheetDataStartRowNumber =
+    dataSheetHeaderRowNumber + DATA_SHEET_START_ROW_OFFSET;
   const dataSheetDataEndRowNumber = dataSheet.getLastRow();
   dataSheet
     .getRange(

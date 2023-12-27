@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { apply } from './modules/create-table/define-apply-module';
+import { apply } from './modules/create-table/create-table-module';
 import { appendUUIDWithDefineSheet } from './modules/uuid-generate/issue-data-sheet-id-module';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -24,5 +24,6 @@ function applyDefine() {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function onEdit(e: GoogleAppsScript.Events.SheetsOnEdit) {
+  // defineシートのUUIDの発行・削除
   appendUUIDWithDefineSheet(e);
 }

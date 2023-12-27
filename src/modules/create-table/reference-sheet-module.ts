@@ -1,10 +1,9 @@
 // 参照シートの読み込み
 import {
-  READ_ROW_MARKER,
   REFERENCE_KEY_NAME,
   REFERENCE_VALUE_NAME,
 } from '../../constants/constant';
-import { getColIndex, getRowIndex } from './sheet-module';
+import { getColIndex, getHeaderRowIndex } from './sheet-module';
 
 export function createReferenceMap(
   referenceSheet: GoogleAppsScript.Spreadsheet.Sheet
@@ -17,19 +16,7 @@ export function createReferenceMap(
     referenceSheet.getLastColumn()
   );
   const referenceSheetValues = referenceRange.getValues();
-  const referenceHeaderRowIndex = getRowIndex(
-    referenceSheetValues,
-    1,
-    READ_ROW_MARKER
-  );
-
-  // Headerが定義されていない
-  if (referenceHeaderRowIndex === undefined) {
-    Logger.log(
-      `参照シート「${referenceSheet.getSheetName()}」にヘッダーが正しく定義されていません。`
-    );
-    return;
-  }
+  const referenceHeaderRowIndex = getHeaderRowIndex(referenceSheet);
 
   const keyColIndex = getColIndex(
     referenceSheetValues[referenceHeaderRowIndex],

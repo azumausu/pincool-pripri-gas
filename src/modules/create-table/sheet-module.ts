@@ -1,5 +1,25 @@
-import { CELL_NAME } from '../../constants/constant';
+import { CELL_NAME, HEADER_START_MARKER } from '../../constants/constant';
 
+// Headerの開始行のインデックスを取得する
+export function getHeaderRowIndex(
+  sheet: GoogleAppsScript.Spreadsheet.Sheet
+): number {
+  const index = getRowIndex(
+    sheet.getRange(1, 1, sheet.getLastRow(), 1).getValues(),
+    1,
+    HEADER_START_MARKER
+  );
+
+  if (index === undefined)
+    throw new Error(
+      `Sheet:${sheet.getSheetName()}の1列目にHeaderの開始位置(${HEADER_START_MARKER})が存在しません。`
+    );
+
+  return index;
+}
+
+// SWITCH関数を作成する
+// SWITCH(CELL, value, key, value, key, value, key, ...)
 export function createReferenceSwitchFormula(
   referenceMap: Map<string, string>
 ) {
@@ -52,8 +72,6 @@ export function getRowIndex(
       return row;
     }
   }
-
-  throw new Error(`「${keyValue}」が存在しません。`);
 }
 
 // 特定の文字列が入っている列の淫デッっくすを取得する

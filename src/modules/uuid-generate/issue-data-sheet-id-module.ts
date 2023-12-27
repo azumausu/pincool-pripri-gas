@@ -1,10 +1,10 @@
 import { generateUUID } from './uuid-generate-module';
 import {
   DEFINE_SHEET_NAME,
-  READ_ROW_MARKER,
+  DEFINE_SHEET_UUID_ROW_OFFSET,
   UUID_KEY_NAME,
 } from '../../constants/constant';
-import { getColIndex, getRowIndex } from '../create-table/sheet-module';
+import { getColIndex, getHeaderRowIndex } from '../create-table/sheet-module';
 
 export function appendUUIDWithDefineSheet(
   e: GoogleAppsScript.Events.SheetsOnEdit
@@ -17,32 +17,28 @@ export function appendUUIDWithDefineSheet(
   const activeRange = sheet.getActiveRange();
   if (!activeRange) return;
 
+  const headerRowIndex = getHeaderRowIndex(sheet);
+  const uuidRowIndex = headerRowIndex + DEFINE_SHEET_UUID_ROW_OFFSET;
+
   const defineRange = sheet.getRange(
     1,
     1,
     sheet.getLastRow(),
     sheet.getLastColumn()
   );
-
   const defineSheetValues = defineRange.getValues();
-  const headerRowIndex = getRowIndex(defineSheetValues, 1, READ_ROW_MARKER);
-
-  // headerが存在しない
-  if (!headerRowIndex)
-    throw new Error('Defineシートのヘッダーに無効な編集がされました。');
-
   const uuidColIndex = getColIndex(
-    defineSheetValues[headerRowIndex],
+    defineSheetValues[uuidRowIndex],
     UUID_KEY_NAME
   );
-  const uuidColNumber = uuidColIndex + 1;
 
-  const startRow = activeRange.getRow();
-  const numRows = activeRange.getNumRows();
+  const uuidColNumber = uuidColIndex + 1;
+  const editStartRow = activeRange.getRow();
+  const editNumRows = activeRange.getNumRows();
   // 変更があった行全てのUUIDに更新をかけるか確認していく
-  for (let i = startRow; i < startRow + numRows; i++) {
+  for (let i = editStartRow; i < editStartRow + editNumRows; i++) {
     const uuidRange = sheet.getRange(i, uuidColNumber);
-    const targetRow = sheet.getRange(
+    const editRow = sheet.getRange(
       i,
       uuidColNumber + 1,
       1,
@@ -50,7 +46,7 @@ export function appendUUIDWithDefineSheet(
     );
 
     // targetRowの全てのCellが空白の時はuuidRangeを空白に設定する
-    if (targetRow.isBlank()) {
+    if (editRow.isBlank()) {
       uuidRange.setValue('');
       continue;
     }
