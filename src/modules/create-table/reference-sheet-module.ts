@@ -3,7 +3,7 @@ import {
   READ_ROW_MARKER,
   REFERENCE_KEY_NAME,
   REFERENCE_VALUE_NAME,
-} from './constants/constant';
+} from '../../constants/constant';
 import { getColIndex, getRowIndex } from './sheet-module';
 
 export function createReferenceMap(

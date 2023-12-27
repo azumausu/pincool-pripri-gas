@@ -16,7 +16,7 @@ import {
   DISPLAY_NAME,
   READ_ROW_MARKER,
   REFERENCE_SHEET_NAME,
-} from './constants/constant';
+} from '../../constants/constant';
 
 export function apply() {
   // シートの取得

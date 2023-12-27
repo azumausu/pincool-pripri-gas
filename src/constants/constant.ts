@@ -12,6 +12,7 @@ export const READ_ROW_MARKER: string = '#';
 export const REFERENCE_KEY_NAME: string = 'key';
 export const REFERENCE_VALUE_NAME: string = 'value';
 
+export const UUID_KEY_NAME: string = 'uuid';
 export const DEFINE_KEY_NAME: string = '項目名';
 export const DISPLAY_NAME: string = '表示名';
 export const REFERENCE_SHEET_NAME: string = '参照シート';

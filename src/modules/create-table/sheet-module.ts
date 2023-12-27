@@ -1,4 +1,4 @@
-import { CELL_NAME } from './constants/constant';
+import { CELL_NAME } from '../../constants/constant';
 
 export function createReferenceSwitchFormula(
   referenceMap: Map<string, string>

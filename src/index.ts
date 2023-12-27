@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 
-import { apply } from './define-apply-module';
+import { apply } from './modules/create-table/define-apply-module';
+import { appendUUIDWithDefineSheet } from './modules/uuid-generate/issue-data-sheet-id-module';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function applyDefine() {
   apply();
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function onEdit(e: GoogleAppsScript.Events.SheetsOnEdit) {
+  appendUUIDWithDefineSheet(e);
 }
