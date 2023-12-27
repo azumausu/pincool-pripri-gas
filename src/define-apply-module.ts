@@ -1,6 +1,14 @@
 import { createReferenceMap } from './reference-sheet-module';
-import { getColIndex, getRowIndex, moveColumnData } from './sheet-module';
 import {
+  createPullDown,
+  createReferenceSwitchFormula,
+  getCellName,
+  getColIndex,
+  getRowIndex,
+  moveColumnData,
+} from './sheet-module';
+import {
+  CELL_NAME,
   DATA_SHEET_COL_OFFSET,
   DATA_SHEET_NAME,
   DEFINE_KEY_NAME,
@@ -62,15 +70,13 @@ export function apply() {
     const displayName =
       defineSheetValues[defineSheetRowIndex][displayNameColIndex];
 
-    // dataシートにIdを挿入
-    dataSheet
-      .getRange(dataSheetHeaderRowNumber, insertDataColNumber)
-      .setValue(id);
-
-    // dataシートに表示名を挿入
-    dataSheet
-      .getRange(dataSheetHeaderRowNumber + 1, insertDataColNumber)
-      .setValue(displayName);
+    insertColumn(
+      dataSheet,
+      id,
+      displayName,
+      insertDataColNumber,
+      dataSheetHeaderRowNumber
+    );
 
     // Referenceシートが定義されているか確認
     const referenceValue = defineSheetValues[defineSheetRowIndex][
@@ -83,37 +89,113 @@ export function apply() {
     const referenceSheet = spreadSheet.getSheetByName(referenceValue);
     if (!referenceSheet) continue;
 
-    const referenceMap = createReferenceMap(referenceSheet);
-    if (!referenceMap) throw new Error();
-
-    moveColumnData(dataSheet, insertDataColNumber, insertDataColNumber + 1);
-
-    // dataシートにIdを挿入
-    dataSheet
-      .getRange(dataSheetHeaderRowNumber, insertDataColNumber)
-      .setValue(`${id}_ref`);
-    // dataシートに表示名を挿入
-    dataSheet
-      .getRange(dataSheetHeaderRowNumber + 1, insertDataColNumber)
-      .setValue(`${displayName}(ref)`);
-    dataSheet
-      .getRange(
-        dataSheetHeaderRowNumber + 2,
-        insertDataColNumber,
-        dataSheet.getLastRow()
-      )
-      .setValues(
-        dataSheet
-          .getRange(
-            dataSheetHeaderRowNumber + 2,
-            insertDataColNumber,
-            dataSheet.getLastRow()
-          )
-          .getValues()
-          .map(x => x.map(y => referenceMap.get(y as string)))
-      );
+    insertReferenceColumn(
+      dataSheet,
+      referenceSheet,
+      id,
+      displayName,
+      insertDataColNumber,
+      dataSheetHeaderRowNumber
+    );
 
     // 参照シート用の列を作成したのでインクリメントする
     referenceCount++;
   }
+}
+
+// 定義シートのIdとDisplayNameを持つ列を追加する
+function insertColumn(
+  dataSheet: GoogleAppsScript.Spreadsheet.Sheet,
+  id: string,
+  displayName: string,
+  insertDataColNumber: number,
+  dataSheetHeaderRowNumber: number
+) {
+  // dataシートにIdを挿入
+  dataSheet
+    .getRange(dataSheetHeaderRowNumber, insertDataColNumber)
+    .setValue(id);
+
+  // dataシートに表示名を挿入
+  dataSheet
+    .getRange(dataSheetHeaderRowNumber + 1, insertDataColNumber)
+    .setValue(displayName);
+}
+
+// 参照シートを挿入する
+function insertReferenceColumn(
+  dataSheet: GoogleAppsScript.Spreadsheet.Sheet,
+  referenceSheet: GoogleAppsScript.Spreadsheet.Sheet,
+  id: string,
+  displayName: string,
+  insertDataColNumber: number,
+  dataSheetHeaderRowNumber: number
+) {
+  const referenceMap = createReferenceMap(referenceSheet);
+  if (!referenceMap) throw new Error();
+
+  moveColumnData(dataSheet, insertDataColNumber, insertDataColNumber + 1);
+
+  // dataシートにIdを挿入
+  dataSheet
+    .getRange(dataSheetHeaderRowNumber, insertDataColNumber)
+    .setValue(`${id}_ref`);
+  // dataシートに表示名を挿入
+  dataSheet
+    .getRange(dataSheetHeaderRowNumber + 1, insertDataColNumber)
+    .setValue(`${displayName}(ref)`);
+  dataSheet
+    .getRange(
+      dataSheetHeaderRowNumber + 2,
+      insertDataColNumber,
+      dataSheet.getLastRow()
+    )
+    .setValues(
+      dataSheet
+        .getRange(
+          dataSheetHeaderRowNumber + 2,
+          insertDataColNumber,
+          dataSheet.getLastRow()
+        )
+        .getValues()
+        .map(x => x.map(y => referenceMap.get(y as string)))
+    );
+
+  // プルダウンの作成
+  createPullDown(dataSheet, dataSheetHeaderRowNumber + 2, insertDataColNumber, [
+    ...referenceMap.values(),
+  ]);
+
+  const formula = createReferenceSwitchFormula(referenceMap);
+
+  const dataSheetDataStartRowNumber = dataSheetHeaderRowNumber + 2;
+  const dataSheetDataEndRowNumber = dataSheet.getLastRow();
+  dataSheet
+    .getRange(
+      dataSheetDataStartRowNumber,
+      insertDataColNumber + 1,
+      dataSheetDataEndRowNumber,
+      1
+    )
+    .setValues(
+      dataSheet
+        .getRange(
+          dataSheetDataStartRowNumber,
+          insertDataColNumber,
+          dataSheetDataEndRowNumber,
+          1
+        )
+        .getValues()
+        .map((x, rowIndex) =>
+          x.map(() =>
+            formula.replace(
+              CELL_NAME,
+              `${getCellName(
+                rowIndex + dataSheetDataStartRowNumber,
+                insertDataColNumber
+              )}`
+            )
+          )
+        )
+    );
 }

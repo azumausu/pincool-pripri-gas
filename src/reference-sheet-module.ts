@@ -40,7 +40,8 @@ export function createReferenceMap(
     REFERENCE_VALUE_NAME
   );
 
-  const dataStartRowNumber = referenceHeaderRowIndex + 1;
+  const headerNumber = referenceHeaderRowIndex + 1;
+  const dataStartRowNumber = headerNumber + 1;
   const keyValues = referenceSheet
     .getRange(dataStartRowNumber, keyColIndex + 1, referenceSheet.getLastRow())
     .getValues();

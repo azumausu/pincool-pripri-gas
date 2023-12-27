@@ -1,3 +1,30 @@
+import { CELL_NAME } from './constants/constant';
+
+export function createReferenceSwitchFormula(
+  referenceMap: Map<string, string>
+) {
+  let formula = `=SWITCH(${CELL_NAME}`;
+  referenceMap.forEach((value, key) => {
+    formula += `, "${value}", "${key}"`;
+  });
+  formula += `)`;
+
+  return formula;
+}
+
+// プルダウンの作成
+export function createPullDown(
+  sheet: GoogleAppsScript.Spreadsheet.Sheet,
+  startRowNumber: number,
+  colNumber: number,
+  pullDownList: string[]
+) {
+  const validationRule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(pullDownList, true)
+    .build();
+  sheet.getRange(startRowNumber, colNumber).setDataValidation(validationRule);
+}
+
 // 列の値の移動
 export function moveColumnData(
   sheet: GoogleAppsScript.Spreadsheet.Sheet,
@@ -38,4 +65,22 @@ export function getColIndex(cellValues: unknown[], keyValue: string) {
   }
 
   throw new Error(`カラム「${keyValue}」が存在しません。`);
+}
+
+export function getCellName(row: number, column: number) {
+  // 列のアルファベット名を取得
+  const columnLetter = columnToLetter(column);
+  // セル名を組み立てる（列のアルファベット名と行番号の組み合わせ）
+  return columnLetter + row;
+}
+
+function columnToLetter(column: number) {
+  let temp,
+    letter = '';
+  while (column > 0) {
+    temp = (column - 1) % 26;
+    letter = String.fromCharCode(temp + 65) + letter;
+    column = (column - temp - 1) / 26;
+  }
+  return letter;
 }

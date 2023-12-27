@@ -1,3 +1,5 @@
+export const CELL_NAME: string = '__CELL__';
+
 export const DEFINE_SHEET_NAME: string = 'define';
 export const DATA_SHEET_NAME: string = 'data';
 
