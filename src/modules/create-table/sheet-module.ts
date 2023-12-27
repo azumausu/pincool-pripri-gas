@@ -1,4 +1,44 @@
-import { CELL_NAME, HEADER_START_MARKER } from '../../constants/constant';
+import {
+  CELL_NAME,
+  DATA_SHEET_DISPLAY_NAME_ROW_OFFSET,
+  DATA_SHEET_KEY_NAME_ROW_OFFSET,
+  DATA_SHEET_UUID_ROW_OFFSET,
+  HEADER_START_MARKER,
+} from '../../constants/constant';
+
+// 定義シートのIdとDisplayNameを持つ列を追加する
+export function insertDataSheetHeader(
+  dataSheet: GoogleAppsScript.Spreadsheet.Sheet,
+  uuid: string,
+  key: string,
+  displayName: string,
+  insertDataColNumber: number,
+  dataSheetHeaderRowNumber: number
+) {
+  // uuidを挿入
+  dataSheet
+    .getRange(
+      dataSheetHeaderRowNumber + DATA_SHEET_UUID_ROW_OFFSET,
+      insertDataColNumber
+    )
+    .setValue(uuid);
+
+  // dataシートに項目名を挿入
+  dataSheet
+    .getRange(
+      dataSheetHeaderRowNumber + DATA_SHEET_KEY_NAME_ROW_OFFSET,
+      insertDataColNumber
+    )
+    .setValue(key);
+
+  // dataシートに表示名を挿入
+  dataSheet
+    .getRange(
+      dataSheetHeaderRowNumber + DATA_SHEET_DISPLAY_NAME_ROW_OFFSET,
+      insertDataColNumber
+    )
+    .setValue(displayName);
+}
 
 // Headerの開始行のインデックスを取得する
 export function getHeaderRowIndex(

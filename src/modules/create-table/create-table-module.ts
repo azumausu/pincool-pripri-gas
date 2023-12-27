@@ -1,23 +1,17 @@
-import { createReferenceMap } from './reference-sheet-module';
+import { insertDataSheetReferenceColumn } from './reference-sheet-module';
 import {
-  createPullDown,
-  createReferenceSwitchFormula,
-  getCellName,
   getColIndex,
   getHeaderRowIndex,
-  moveColumnData,
+  insertDataSheetHeader,
 } from './sheet-module';
 import {
-  CELL_NAME,
   DATA_SHEET_COL_OFFSET,
-  DATA_SHEET_DISPLAY_NAME_ROW_OFFSET,
-  DATA_SHEET_KEY_NAME_ROW_OFFSET,
   DATA_SHEET_NAME,
-  DATA_SHEET_START_ROW_OFFSET,
   DEFINE_KEY_NAME,
   DEFINE_SHEET_NAME,
   DISPLAY_NAME,
   REFERENCE_SHEET_NAME,
+  UUID_KEY_NAME,
 } from '../../constants/constant';
 
 export function apply() {
@@ -38,6 +32,10 @@ export function apply() {
   const defineSheetValues = defineRange.getValues();
   const defineSheetHeaderRowIndex = getHeaderRowIndex(defineSheet);
 
+  const uuidColIndex = getColIndex(
+    defineSheetValues[defineSheetHeaderRowIndex],
+    UUID_KEY_NAME
+  );
   const idColIndex = getColIndex(
     defineSheetValues[defineSheetHeaderRowIndex],
     DEFINE_KEY_NAME
@@ -64,13 +62,15 @@ export function apply() {
   ) {
     const defineSheetRowIndex = defineSheetHeaderRowIndex + i;
     const insertDataColNumber = referenceCount + i + DATA_SHEET_COL_OFFSET;
-    const id = defineSheetValues[defineSheetRowIndex][idColIndex];
+    const uuid = defineSheetValues[defineSheetRowIndex][uuidColIndex];
+    const key = defineSheetValues[defineSheetRowIndex][idColIndex];
     const displayName =
       defineSheetValues[defineSheetRowIndex][displayNameColIndex];
 
-    insertColumn(
+    insertDataSheetHeader(
       dataSheet,
-      id,
+      uuid,
+      key,
       displayName,
       insertDataColNumber,
       dataSheetHeaderRowNumber
@@ -87,10 +87,11 @@ export function apply() {
     const referenceSheet = spreadSheet.getSheetByName(referenceValue);
     if (!referenceSheet) continue;
 
-    insertReferenceColumn(
+    insertDataSheetReferenceColumn(
       dataSheet,
       referenceSheet,
-      id,
+      uuid,
+      key,
       displayName,
       insertDataColNumber,
       dataSheetHeaderRowNumber
@@ -99,111 +100,4 @@ export function apply() {
     // 参照シート用の列を作成したのでインクリメントする
     referenceCount++;
   }
-}
-
-// 定義シートのIdとDisplayNameを持つ列を追加する
-function insertColumn(
-  dataSheet: GoogleAppsScript.Spreadsheet.Sheet,
-  key: string,
-  displayName: string,
-  insertDataColNumber: number,
-  dataSheetHeaderRowNumber: number
-) {
-  // dataシートに項目名を挿入
-  dataSheet
-    .getRange(
-      dataSheetHeaderRowNumber + DATA_SHEET_KEY_NAME_ROW_OFFSET,
-      insertDataColNumber
-    )
-    .setValue(key);
-
-  // dataシートに表示名を挿入
-  dataSheet
-    .getRange(
-      dataSheetHeaderRowNumber + DATA_SHEET_DISPLAY_NAME_ROW_OFFSET,
-      insertDataColNumber
-    )
-    .setValue(displayName);
-}
-
-// 参照シートを挿入する
-function insertReferenceColumn(
-  dataSheet: GoogleAppsScript.Spreadsheet.Sheet,
-  referenceSheet: GoogleAppsScript.Spreadsheet.Sheet,
-  key: string,
-  displayName: string,
-  insertDataColNumber: number,
-  dataSheetHeaderRowNumber: number
-) {
-  const referenceMap = createReferenceMap(referenceSheet);
-  if (!referenceMap) throw new Error();
-
-  moveColumnData(dataSheet, insertDataColNumber, insertDataColNumber + 1);
-
-  insertColumn(
-    dataSheet,
-    `${key}_ref`,
-    `${displayName}(ref)`,
-    insertDataColNumber,
-    dataSheetHeaderRowNumber
-  );
-
-  dataSheet
-    .getRange(
-      dataSheetHeaderRowNumber + DATA_SHEET_START_ROW_OFFSET,
-      insertDataColNumber,
-      dataSheet.getLastRow()
-    )
-    .setValues(
-      dataSheet
-        .getRange(
-          dataSheetHeaderRowNumber + DATA_SHEET_START_ROW_OFFSET,
-          insertDataColNumber,
-          dataSheet.getLastRow()
-        )
-        .getValues()
-        .map(x => x.map(y => referenceMap.get(y as string)))
-    );
-
-  // プルダウンの作成
-  createPullDown(
-    dataSheet,
-    dataSheetHeaderRowNumber + DATA_SHEET_START_ROW_OFFSET,
-    insertDataColNumber,
-    [...referenceMap.values()]
-  );
-
-  // 参照シートのValueをKeyに変換する関数を作成
-  const formula = createReferenceSwitchFormula(referenceMap);
-  const dataSheetDataStartRowNumber =
-    dataSheetHeaderRowNumber + DATA_SHEET_START_ROW_OFFSET;
-  const dataSheetDataEndRowNumber = dataSheet.getLastRow();
-  dataSheet
-    .getRange(
-      dataSheetDataStartRowNumber,
-      insertDataColNumber + 1,
-      dataSheetDataEndRowNumber,
-      1
-    )
-    .setValues(
-      dataSheet
-        .getRange(
-          dataSheetDataStartRowNumber,
-          insertDataColNumber,
-          dataSheetDataEndRowNumber,
-          1
-        )
-        .getValues()
-        .map((x, rowIndex) =>
-          x.map(() =>
-            formula.replace(
-              CELL_NAME,
-              `${getCellName(
-                rowIndex + dataSheetDataStartRowNumber,
-                insertDataColNumber
-              )}`
-            )
-          )
-        )
-    );
 }
