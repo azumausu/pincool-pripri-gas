@@ -64,12 +64,30 @@ export function insertDataSheetReferenceColumn(
   key: string,
   displayName: string,
   insertDataColNumber: number,
-  dataSheetHeaderRowNumber: number
+  dataSheetHeaderRowNumber: number,
+  dataSheetUUIDToColMap: Map<string, number>
 ) {
+  const referenceInsertDataColNumber = insertDataColNumber + 1;
+  // すでにデータが存在しているかを確認して、存在している場合は何もしない
+  const referenceDataUUID = `${uuid}_ref`;
+  const referenceDataColNumber = dataSheetUUIDToColMap.get(referenceDataUUID);
+  if (referenceDataColNumber !== undefined) {
+    if (referenceDataColNumber === referenceInsertDataColNumber) return;
+
+    // データシートの同じ異なる位置に存在する場合はコピーする
+    moveColumnData(
+      dataSheet,
+      referenceDataColNumber,
+      referenceInsertDataColNumber
+    );
+    return;
+  }
+
+  // 参照シートの読み込み
   const referenceMap = createReferenceMap(referenceSheet);
   if (!referenceMap) throw new Error();
 
-  moveColumnData(dataSheet, insertDataColNumber, insertDataColNumber + 1);
+  moveColumnData(dataSheet, insertDataColNumber, referenceInsertDataColNumber);
 
   insertDataSheetHeader(
     dataSheet,
@@ -113,7 +131,7 @@ export function insertDataSheetReferenceColumn(
   dataSheet
     .getRange(
       dataSheetDataStartRowNumber,
-      insertDataColNumber + 1,
+      referenceInsertDataColNumber,
       dataSheetDataEndRowNumber,
       1
     )

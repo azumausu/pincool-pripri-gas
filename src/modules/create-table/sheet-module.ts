@@ -1,10 +1,41 @@
 import {
   CELL_NAME,
+  DATA_SHEET_COL_OFFSET,
   DATA_SHEET_DISPLAY_NAME_ROW_OFFSET,
   DATA_SHEET_KEY_NAME_ROW_OFFSET,
   DATA_SHEET_UUID_ROW_OFFSET,
   HEADER_START_MARKER,
 } from '../../constants/constant';
+
+export function createDataSheetUUIDToColMap(
+  dataSheet: GoogleAppsScript.Spreadsheet.Sheet
+): Map<string, number> {
+  const dataSheetUUIDToColMap = new Map<string, number>();
+
+  const dataSheetHeaderRowIndex = getHeaderRowIndex(dataSheet);
+  const dataSheetUUIDRowIndex =
+    dataSheetHeaderRowIndex + DATA_SHEET_UUID_ROW_OFFSET;
+  const dataSheetUUIDRowNumber = dataSheetUUIDRowIndex + 1;
+
+  for (let i = 0; i < dataSheet.getLastColumn(); i++) {
+    const colIndex = i + DATA_SHEET_COL_OFFSET;
+    const colNumber = colIndex + 1;
+
+    // uuidを取得
+    const dataUUIDRange = dataSheet.getRange(
+      dataSheetUUIDRowNumber,
+      colNumber,
+      1,
+      1
+    );
+    if (dataUUIDRange.isBlank()) continue;
+
+    // uuidとデータのkey-valueを作成
+    dataSheetUUIDToColMap.set(dataUUIDRange.getValue(), colNumber);
+  }
+
+  return dataSheetUUIDToColMap;
+}
 
 // 定義シートのIdとDisplayNameを持つ列を追加する
 export function insertDataSheetHeader(
