@@ -1,11 +1,5 @@
 // 参照シートの読み込み
 import {
-  CELL_NAME,
-  DATA_SHEET_START_ROW_OFFSET,
-  REFERENCE_KEY_NAME,
-  REFERENCE_VALUE_NAME,
-} from '../../constants/constant';
-import {
   createPullDown,
   createReferenceSwitchFormula,
   getCellName,
@@ -14,6 +8,12 @@ import {
   insertDataSheetHeader,
   moveColumnData,
 } from './sheet-module';
+import {
+  CELL_NAME,
+  REFERENCE_KEY_NAME,
+  REFERENCE_VALUE_NAME,
+} from '../../constants/common';
+import { DATA_SHEET_START_ROW_OFFSET } from '../../constants/data_sheet';
 
 export function createReferenceMap(
   referenceSheet: GoogleAppsScript.Spreadsheet.Sheet

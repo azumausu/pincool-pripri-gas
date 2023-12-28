@@ -6,15 +6,17 @@ import {
   insertDataSheetHeader,
   moveColumnData,
 } from './sheet-module';
+import { DEFINE_SHEET_NAME } from '../../constants/define_sheet';
 import {
   DATA_SHEET_COL_OFFSET,
   DATA_SHEET_NAME,
+} from '../../constants/data_sheet';
+import {
   DEFINE_KEY_NAME,
-  DEFINE_SHEET_NAME,
   DISPLAY_NAME,
-  REFERENCE_SHEET_NAME,
   UUID_KEY_NAME,
-} from '../../constants/constant';
+} from '../../constants/common';
+import { REFERENCE_SHEET_NAME } from '../../constants/reference_sheet';
 
 export function apply() {
   // シートの取得

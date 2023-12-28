@@ -1,10 +1,10 @@
 import { generateUUID } from './uuid-generate-module';
+import { getColIndex, getHeaderRowIndex } from '../create-table/sheet-module';
 import {
   DEFINE_SHEET_NAME,
   DEFINE_SHEET_UUID_ROW_OFFSET,
-  UUID_KEY_NAME,
-} from '../../constants/constant';
-import { getColIndex, getHeaderRowIndex } from '../create-table/sheet-module';
+} from '../../constants/define_sheet';
+import { UUID_KEY_NAME } from '../../constants/common';
 
 export function appendUUIDWithDefineSheet(
   e: GoogleAppsScript.Events.SheetsOnEdit

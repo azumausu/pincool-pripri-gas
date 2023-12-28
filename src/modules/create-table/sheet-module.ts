@@ -1,11 +1,10 @@
 import {
-  CELL_NAME,
   DATA_SHEET_COL_OFFSET,
   DATA_SHEET_DISPLAY_NAME_ROW_OFFSET,
   DATA_SHEET_KEY_NAME_ROW_OFFSET,
   DATA_SHEET_UUID_ROW_OFFSET,
-  HEADER_START_MARKER,
-} from '../../constants/constant';
+} from '../../constants/data_sheet';
+import { CELL_NAME, HEADER_START_MARKER } from '../../constants/common';
 
 export function createDataSheetUUIDToColMap(
   dataSheet: GoogleAppsScript.Spreadsheet.Sheet
