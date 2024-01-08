@@ -251,7 +251,9 @@ export function createPullDown(
   const validationRule = SpreadsheetApp.newDataValidation()
     .requireValueInList(pullDownList, true)
     .build();
-  sheet.getRange(startRowNumber, colNumber).setDataValidation(validationRule);
+  sheet
+    .getRange(startRowNumber, colNumber, sheet.getLastRow(), 1)
+    .setDataValidation(validationRule);
 }
 
 // 列の値の移動
@@ -285,7 +287,6 @@ export function copyColumnDataForDataSheet(
 
   const rangeTo = sheet.getRange(dataSheetUUIDRowNumber, copyToColumn, numRows);
 
-  rangeTo.clearDataValidations();
   rangeTo.clearContent();
 
   rangeTo.setValues(copyData);

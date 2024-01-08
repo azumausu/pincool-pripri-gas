@@ -49,7 +49,15 @@ export function apply() {
       insertionColNumber
     );
 
-    // 参照カラムの場合はプルダウンを追加で設定する。ここもどんな場合でも更新をかける
+    // プルダウンのルールを削除しつつ、参照カラムの場合はプルダウンを追加で設定する。ここもどんな場合でも更新をかける
+    dataSheet
+      .getRange(
+        dataSheetDataStartRowNumber,
+        insertionColNumber,
+        dataSheet.getLastRow(),
+        1
+      )
+      .clearDataValidations();
     if (metadata.isReferenceColumn) {
       createPullDown(
         dataSheet,
