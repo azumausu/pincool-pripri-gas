@@ -14,7 +14,7 @@ export const REFERENCE_VALUE_NAME: string = 'value';
 export const UUID_KEY_NAME: string = 'uuid';
 
 // シートの「項目名」カラムの名前
-export const DEFINE_KEY_NAME: string = '項目名';
+export const DEFINE_VARIABLE_NAME: string = '項目名';
 
 // シートの「表示名」カラムの名前
 export const DISPLAY_NAME: string = '表示名';

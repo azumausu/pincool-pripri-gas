@@ -61,7 +61,7 @@ export function insertDataSheetReferenceColumn(
   dataSheet: GoogleAppsScript.Spreadsheet.Sheet,
   referenceSheet: GoogleAppsScript.Spreadsheet.Sheet,
   uuid: string,
-  key: string,
+  variableName: string,
   displayName: string,
   insertDataColNumber: number,
   dataSheetHeaderRowNumber: number,
@@ -92,10 +92,9 @@ export function insertDataSheetReferenceColumn(
   insertDataSheetHeader(
     dataSheet,
     `${uuid}_ref`,
-    `${key}_ref`,
+    `${variableName}_ref`,
     `${displayName}(ref)`,
-    insertDataColNumber,
-    dataSheetHeaderRowNumber
+    insertDataColNumber
   );
 
   dataSheet
