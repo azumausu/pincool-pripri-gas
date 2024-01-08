@@ -84,8 +84,8 @@ export function createSheetInsertionMetadata(
 
       metadata.push({
         uuid: `${uuid}_ref`,
-        variableName: `${variableName}_ref`,
-        displayName: `${displayName}_ref`,
+        variableName: `${variableName}`,
+        displayName: `${displayName}`,
         // 自身が参照シートなので持っていない
         referenceSheetName: referenceSheetName,
         insertionColumnNumber: insertionColNumber,
@@ -99,8 +99,8 @@ export function createSheetInsertionMetadata(
       // 実データ側のカラムを追加
       metadata.push({
         uuid: uuid,
-        variableName: variableName,
-        displayName: displayName,
+        variableName: `${variableName}`,
+        displayName: `値（${displayName}）`,
         referenceSheetName: referenceSheetName,
         insertionColumnNumber: insertionColNumber,
         isReferenceColumn: false,

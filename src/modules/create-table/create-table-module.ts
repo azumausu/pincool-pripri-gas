@@ -39,30 +39,8 @@ export function apply() {
     const currentData = dataSheetUUIDToMetadataMap.get(metadata.uuid);
     const insertionColNumber =
       metadata.insertionColumnNumber + DATA_SHEET_COL_OFFSET;
-    if (currentData !== undefined) {
-      // 既に挿入しようとしている位置に同一のデータが存在している場合は次のループへ
-      if (currentData.columnNumber === insertionColNumber) continue;
 
-      // データが存在しているが別の列に存在している場合はデータをコピーする
-      copyColumnDataForDataSheet(
-        dataSheet,
-        currentData.data,
-        insertionColNumber
-      );
-      continue;
-    }
-
-    // 今入っているデータをヘッダーから破棄する
-    dataSheet
-      .getRange(
-        dataSheetHeaderRowNumber,
-        insertionColNumber,
-        dataSheetLastRowNumber,
-        1
-      )
-      .clear();
-
-    // 通常のデータとして挿入する
+    // ヘッダーは更新がかかっている可能性があるため常に更新をかける
     insertDataSheetHeader(
       dataSheet,
       metadata.uuid,
@@ -71,7 +49,7 @@ export function apply() {
       insertionColNumber
     );
 
-    // 参照カラムの場合はプルダウンを追加で設定する
+    // 参照カラムの場合はプルダウンを追加で設定する。ここもどんな場合でも更新をかける
     if (metadata.isReferenceColumn) {
       createPullDown(
         dataSheet,
@@ -81,7 +59,7 @@ export function apply() {
       );
     }
 
-    // 参照カラムの実データの場合は、関数を追加で設定する
+    // 参照カラムの実データの場合は、関数を追加で設定する。ここもどんな場合でも更新をかける
     if (metadata.hasReferenceColumn) {
       const formula = createReferenceSwitchFormula(metadata.referenceMap!);
       dataSheet
@@ -113,5 +91,30 @@ export function apply() {
             )
         );
     }
+
+    if (currentData !== undefined) {
+      // 既に挿入しようとしている同一データが存在している場合は何もしない
+      if (currentData.columnNumber === insertionColNumber) {
+        continue;
+      }
+
+      // データが存在しているが別の列に存在している場合はデータをコピーする
+      copyColumnDataForDataSheet(
+        dataSheet,
+        currentData.data,
+        insertionColNumber
+      );
+      continue;
+    }
+
+    // 今入っているデータを破棄する
+    const overrideRangeData = dataSheet.getRange(
+      dataSheetHeaderRowNumber,
+      insertionColNumber,
+      dataSheetLastRowNumber,
+      1
+    );
+    overrideRangeData.clearContent();
+    overrideRangeData.clearDataValidations();
   }
 }
