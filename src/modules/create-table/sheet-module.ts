@@ -1,10 +1,10 @@
 import {
   DATA_SHEET_COL_OFFSET,
   DATA_SHEET_DISPLAY_NAME_ROW_OFFSET,
-  DATA_SHEET_VARIABLE_NAME_ROW_OFFSET,
-  DATA_SHEET_UUID_ROW_OFFSET,
   DATA_SHEET_IMPORT_COL_MARKER,
   DATA_SHEET_IMPORT_COL_MARKER_ROW_NUMBER,
+  DATA_SHEET_UUID_ROW_OFFSET,
+  DATA_SHEET_VARIABLE_NAME_ROW_OFFSET,
 } from '../../constants/data_sheet';
 import {
   CELL_NAME,
@@ -22,6 +22,7 @@ import {
 import { REFERENCE_SHEET_NAME } from '../../constants/reference_sheet';
 import { createReferenceMap } from './reference-sheet-module';
 import { SheetInsertionMetadata } from '../../types/sheet-insertion-metadata';
+import { DefineSheetCellType } from '../../types/cell-type';
 
 // 定義シートで定義されているデータからデータシートに挿入する情報を作成する
 export function createSheetInsertionMetadata(
@@ -66,7 +67,8 @@ export function createSheetInsertionMetadata(
       headerRowNumber + DEFINE_SHEET_DATA_START_ROW_OFFSET + i;
     const importTarget = defineSheet
       .getRange(readRowNumber, importColNumber, 1, 1)
-      .getValue();
+      .getValue()
+      .toString();
     const uuid = defineSheet
       .getRange(readRowNumber, uuidColNumber, 1, 1)
       .getValue();
@@ -99,13 +101,12 @@ export function createSheetInsertionMetadata(
       metadata.push({
         importTarget: false,
         uuid: `${uuid}_ref`,
+        cellType: DefineSheetCellType.ReferencePullDown,
         variableName: `${variableName}`,
         displayName: `${displayName}`,
         // 自身が参照シートなので持っていない
         referenceSheetName: referenceSheetName,
         insertionColumnNumber: insertionColNumber,
-        isReferenceColumn: true,
-        hasReferenceColumn: false,
         referenceColumnNumber: -1,
         referenceMap: referenceMap,
       });
@@ -115,12 +116,11 @@ export function createSheetInsertionMetadata(
       metadata.push({
         importTarget: importTarget === DEFINE_SHEET_IMPORT_STRING,
         uuid: uuid,
+        cellType: DefineSheetCellType.ReferenceFormula,
         variableName: `${variableName}`,
         displayName: `値（${displayName}）`,
         referenceSheetName: referenceSheetName,
         insertionColumnNumber: insertionColNumber,
-        isReferenceColumn: false,
-        hasReferenceColumn: true,
         referenceColumnNumber: insertionColNumber - 1,
         referenceMap: referenceMap,
       });
@@ -131,12 +131,11 @@ export function createSheetInsertionMetadata(
     metadata.push({
       importTarget: importTarget === DEFINE_SHEET_IMPORT_STRING,
       uuid: uuid,
+      cellType: DefineSheetCellType.Normal,
       variableName: variableName,
       displayName: displayName,
       referenceSheetName: '',
       insertionColumnNumber: insertionColNumber,
-      isReferenceColumn: false,
-      hasReferenceColumn: false,
       referenceColumnNumber: -1,
       referenceMap: null,
     });
@@ -269,13 +268,14 @@ export function createPullDown(
   sheet: GoogleAppsScript.Spreadsheet.Sheet,
   startRowNumber: number,
   colNumber: number,
+  rowCount: number,
   pullDownList: string[]
 ) {
   const validationRule = SpreadsheetApp.newDataValidation()
     .requireValueInList(pullDownList, true)
     .build();
   sheet
-    .getRange(startRowNumber, colNumber, sheet.getLastRow(), 1)
+    .getRange(startRowNumber, colNumber, rowCount, 1)
     .setDataValidation(validationRule);
 }
 
