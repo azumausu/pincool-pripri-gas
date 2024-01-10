@@ -18,3 +18,6 @@ export const DEFINE_VARIABLE_NAME: string = '項目名';
 
 // シートの「表示名」カラムの名前
 export const DISPLAY_NAME: string = '表示名';
+
+// シートの「インポート対象」カラムの名前
+export const SHOULD_IMPORT: string = 'インポート対象';

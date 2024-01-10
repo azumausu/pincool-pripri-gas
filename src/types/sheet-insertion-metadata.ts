@@ -2,6 +2,8 @@ export type SheetInsertionMetadata = {
   // 挿入するUUID
   uuid: string;
 
+  importTarget: boolean;
+
   // 項目名
   variableName: string;
 

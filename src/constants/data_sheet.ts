@@ -1,6 +1,12 @@
 // データシートの名前
 export const DATA_SHEET_NAME: string = 'data';
 
+// インポートする列
+export const DATA_SHEET_IMPORT_COL_MARKER: string = '*';
+
+// インポートマークを定義する行番号
+export const DATA_SHEET_IMPORT_COL_MARKER_ROW_NUMBER: number = 1;
+
 // データシートの入力データの開始列のオフセット値
 export const DATA_SHEET_COL_OFFSET: number = 2;
 

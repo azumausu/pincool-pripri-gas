@@ -6,3 +6,5 @@ export const DEFINE_SHEET_UUID_ROW_OFFSET: number = 0;
 
 // ヘッダー開始位置からデータの開始位置までのオフセット
 export const DEFINE_SHEET_DATA_START_ROW_OFFSET: number = 1;
+
+export const DEFINE_SHEET_IMPORT_STRING: string = `1`;

@@ -3,16 +3,22 @@ import {
   DATA_SHEET_DISPLAY_NAME_ROW_OFFSET,
   DATA_SHEET_VARIABLE_NAME_ROW_OFFSET,
   DATA_SHEET_UUID_ROW_OFFSET,
+  DATA_SHEET_IMPORT_COL_MARKER,
+  DATA_SHEET_IMPORT_COL_MARKER_ROW_NUMBER,
 } from '../../constants/data_sheet';
 import {
   CELL_NAME,
   DEFINE_VARIABLE_NAME,
   DISPLAY_NAME,
   HEADER_START_MARKER,
+  SHOULD_IMPORT,
   UUID_KEY_NAME,
 } from '../../constants/common';
 import { DataSheetMetadata } from '../../types/data-sheet-metadata';
-import { DEFINE_SHEET_DATA_START_ROW_OFFSET } from '../../constants/define_sheet';
+import {
+  DEFINE_SHEET_DATA_START_ROW_OFFSET,
+  DEFINE_SHEET_IMPORT_STRING,
+} from '../../constants/define_sheet';
 import { REFERENCE_SHEET_NAME } from '../../constants/reference_sheet';
 import { createReferenceMap } from './reference-sheet-module';
 import { SheetInsertionMetadata } from '../../types/sheet-insertion-metadata';
@@ -28,6 +34,10 @@ export function createSheetInsertionMetadata(
   const headerRowNumber = headerRowIndex + 1;
   const lastRowNumber = defineSheet.getLastRow();
   const lastColNumber = defineSheet.getLastColumn();
+  const importColIndex = getColIndex(
+    defineSheet.getRange(headerRowNumber, 1, 1, lastColNumber).getValues()[0],
+    SHOULD_IMPORT
+  );
   const uuidColIndex = getColIndex(
     defineSheet.getRange(headerRowNumber, 1, 1, lastColNumber).getValues()[0],
     UUID_KEY_NAME
@@ -44,6 +54,7 @@ export function createSheetInsertionMetadata(
     defineSheet.getRange(headerRowNumber, 1, 1, lastColNumber).getValues()[0],
     REFERENCE_SHEET_NAME
   );
+  const importColNumber = importColIndex + 1;
   const uuidColNumber = uuidColIndex + 1;
   const variableNameColNumber = variableNameColIndex + 1;
   const displayNameColNumber = displayNameColIndex + 1;
@@ -53,6 +64,9 @@ export function createSheetInsertionMetadata(
   for (let i = 0; i < lastRowNumber - headerRowIndex; i++) {
     const readRowNumber =
       headerRowNumber + DEFINE_SHEET_DATA_START_ROW_OFFSET + i;
+    const importTarget = defineSheet
+      .getRange(readRowNumber, importColNumber, 1, 1)
+      .getValue();
     const uuid = defineSheet
       .getRange(readRowNumber, uuidColNumber, 1, 1)
       .getValue();
@@ -83,6 +97,7 @@ export function createSheetInsertionMetadata(
         );
 
       metadata.push({
+        importTarget: false,
         uuid: `${uuid}_ref`,
         variableName: `${variableName}`,
         displayName: `${displayName}`,
@@ -98,6 +113,7 @@ export function createSheetInsertionMetadata(
 
       // 実データ側のカラムを追加
       metadata.push({
+        importTarget: importTarget === DEFINE_SHEET_IMPORT_STRING,
         uuid: uuid,
         variableName: `${variableName}`,
         displayName: `値（${displayName}）`,
@@ -113,6 +129,7 @@ export function createSheetInsertionMetadata(
     }
 
     metadata.push({
+      importTarget: importTarget === DEFINE_SHEET_IMPORT_STRING,
       uuid: uuid,
       variableName: variableName,
       displayName: displayName,
@@ -177,12 +194,18 @@ export function createDataSheetUUIDToSheetInsertionMetadataMap(
 // 定義シートのIdとDisplayNameを持つ列を追加する
 export function insertDataSheetHeader(
   dataSheet: GoogleAppsScript.Spreadsheet.Sheet,
+  isImportTarget: boolean,
   uuid: string,
   key: string,
   displayName: string,
   insertDataColNumber: number
 ) {
   const dataSheetHeaderRowNumber = getHeaderRowIndex(dataSheet) + 1;
+
+  // インポートマーカーを挿入
+  dataSheet
+    .getRange(DATA_SHEET_IMPORT_COL_MARKER_ROW_NUMBER, insertDataColNumber)
+    .setValue(isImportTarget ? DATA_SHEET_IMPORT_COL_MARKER : ``);
 
   // uuidを挿入
   dataSheet

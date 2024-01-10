@@ -43,6 +43,7 @@ export function apply() {
     // ヘッダーは更新がかかっている可能性があるため常に更新をかける
     insertDataSheetHeader(
       dataSheet,
+      metadata.importTarget,
       metadata.uuid,
       metadata.variableName,
       metadata.displayName,
@@ -117,7 +118,7 @@ export function apply() {
 
     // 今入っているデータを破棄する
     const overrideRangeData = dataSheet.getRange(
-      dataSheetHeaderRowNumber,
+      dataSheetDataStartRowNumber,
       insertionColNumber,
       dataSheetLastRowNumber,
       1
